@@ -141,6 +141,16 @@ h1 {
   color: #999;
 }
 
+#itemList li .editButton {
+  border: none;
+  background: none;
+  color: #4a90d9;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
 #itemList li .deleteButton {
   border: none;
   background: none;
