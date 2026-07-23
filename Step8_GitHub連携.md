@@ -13,6 +13,7 @@
 │  ⑨ ブランチ保護ルールで直接pushを禁止              │
 │  ⑩ マージコンフリクトの解消                       │
 │  ⑪ Issueによるタスク管理（closes連携）             │
+│  ⑫ ブランチ戦略（GitHub Flow / Git Flow）           │
 └───────────────────────────────────────────┘
 ```
 
@@ -231,6 +232,48 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 - ①は`gh issue view`でIssue本文を読み取れるため、「Issue #番号の内容で実装して」と指示するだけで背景・完了条件まで汲み取って実装できる
 - ②はAnthropic提供の「Claude Code GitHub Action」を`.github/workflows/`に追加すると使える、より発展的な自動化。今のリポジトリには未導入
 
+## 12. ブランチ戦略（GitHub Flow と Git Flow）
+
+`master`と`feature/xxx`だけで運用してきたこのプロジェクトの方式（GitHub Flow）と、`develop`ブランチを使う伝統的な方式（Git Flow）の違いを整理した。実際にブランチは作らず、概念として学習した。
+
+```
+【GitHub Flow】（このプロジェクトで実際に使っている方式）
+
+  master ──●──●──●──●──●──●──▶   常に「本番」= 常に「最新」
+            │  │  │  │  │  │        push毎にPages自動デプロイ
+            └feature └feature ...   マージ＝即リリース
+
+【Git Flow】（develop等を使う伝統的な方式）
+
+  master  ──●─────────────●───────▶  リリース済みの安定版のみ
+             │  release   │
+  develop ───●──●──●──●───●──●─────▶  開発中の最新（まだ未リリース）
+              │  │      │
+              feature  feature ...
+```
+
+**GitHub Flow（このプロジェクトの方式）**:
+- ブランチは`master`と`feature/xxx`だけ
+- `master`＝「本番」であり「開発の最新」でもある（1つのブランチが2役）
+- マージ＝そのままGitHub Pagesに自動デプロイ（6. 7.で構築済みの仕組み）
+- 前提：小さく作って、こまめにリリースし続ける（継続的デプロイ向き）
+
+**Git Flow（develop / release / hotfix を追加する方式）**:
+
+| ブランチ | 役割 |
+|---|---|
+| `master`（`main`） | リリース済みの安定版のみ。常にデプロイ可能だが、頻繁には更新しない |
+| `develop` | 開発中の最新。featureはここにマージする（masterには直接入らない） |
+| `feature/xxx` | 個別機能。`develop`から切って`develop`へマージ |
+| `release/x.x` | リリース準備用。develop→releaseでバグ修正のみ行い、完了したらmasterとdevelop両方へマージ |
+| `hotfix/xxx` | 本番の緊急バグ修正用。masterから切ってmasterとdevelopへマージ |
+
+**使い分けの判断基準**:
+- **継続的デプロイ**（pushすればすぐ公開したい）→ GitHub Flowが向く。develop分岐があると「developには入ったがmasterにはまだ」という**ズレた状態**が生まれ、CDの仕組みと相性が悪い
+- **バージョンを区切ってリリース**（例: 月1回のリリース、複数バージョンを並行サポート）→ Git Flowが向く。「開発中のもの」と「今世に出ているもの」を明確に分けられる
+
+**学び**: このリポジトリはGitHub Pagesへの自動デプロイを組んでいるため、実はGit Flow向きの構成ではない。ブランチ戦略は「かっこいいから採用する」ものではなく、リリース頻度やCD構成に合わせて選ぶもの、という判断軸を持てた。
+
 ## チェックポイント
 
 - [x] `git status`/`git diff`で変更内容を確認してからコミットできる
@@ -243,3 +286,4 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 - [x] ブランチ保護ルールを設定し、masterへの直接pushがGitHub側で拒否されることを確認できる
 - [x] 意図的にマージコンフリクトを発生させ、コンフリクトマーカーを読んで手動で解消できる
 - [x] Issueを起票し、PRに`closes #番号`を書いてマージ時に自動クローズされることを確認できる
+- [x] GitHub FlowとGit Flowの違いを説明でき、自分のプロジェクトがどちらに向いているか判断できる
