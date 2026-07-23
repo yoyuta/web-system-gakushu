@@ -8,6 +8,8 @@
 │  ③ ブランチを切っての機能開発                     │
 │  ④ Pull Request経由のレビュー・マージフロー        │
 │  ⑤ GitHub ActionsによるCI（自動チェック）         │
+│  ⑥ GitHub PagesへのCD（自動デプロイ）             │
+│  ⑦ PR→CI→マージ→自動デプロイの反復サイクル        │
 └───────────────────────────────────────────┘
 ```
 
@@ -80,11 +82,40 @@ PRを出すたびに、コーディング規約（jQuery1.11／ECMAScript5準拠
 
 **作成したPR**: https://github.com/yoyuta/web-system-gakushu/pull/2 （CI追加）
 
-## 6. このプロジェクト特有の注意点
+## 6. GitHub PagesによるCD（継続的デプロイ）
+
+masterにマージするたびに、アプリを自動でインターネット公開する仕組みを追加した。スマートフォン実機からいつでもアクセスしたい、という実用上のニーズから着手。
+
+| ファイル | 役割 |
+|---|---|
+| `.github/workflows/deploy.yml` | `push`（対象: `master`）で`買い物リスト/`配下をPagesにデプロイ。`actions/configure-pages` → `actions/upload-pages-artifact` → `actions/deploy-pages` の3ステップ |
+
+**判断が必要だった点**: GitHub PagesはFreeプランだとPrivateリポジトリでは使えない（`gh api .../pages`が422エラー）。対応として、リポジトリ内に機密情報がないことを`git grep`で確認したうえで、リポジトリをPublicに変更（`gh repo edit --visibility public --accept-visibility-change-consequences`）してから有効化した。アプリの状態（買い物データ）はブラウザのlocalStorage内で完結する設計のため、ページが公開されてもユーザーのデータ自体が漏れることはない。
+
+**Pagesの有効化**: `gh api repos/<owner>/<repo>/pages -X POST -f build_type=workflow`（ソースを「GitHub Actions」に設定）
+
+**公開URL**: https://yoyuta.github.io/web-system-gakushu/ （スマホからもこのURLでアクセス可能。QRコード化して読み取ると早い）
+
+**作成したPR**: https://github.com/yoyuta/web-system-gakushu/pull/3 （デプロイCD追加）
+
+## 7. PR→CI→マージ→自動デプロイの反復サイクル
+
+CI・CDが揃った後は、機能追加のたびに同じサイクルで進められることを確認した（例: 数量の＋－ボタン追加、PR #4）。
+
+```
+ブランチ作成 → 実装 → ローカルでESLint確認 → コミット → push
+  → PR作成 → GitHub Actions(lint)がpassするのを確認
+  → マージ → 自動でdeploy.ymlが走りGitHub Pagesへ反映
+```
+
+一度この基盤を作ってしまえば、以降の変更は「実装してpushしてPRをマージする」だけで、規約チェックとスマホへの反映が自動化される。
+
+## 8. このプロジェクト特有の注意点
 
 - `~/.claude/hooks/`に**危険なgitコマンドをブロックするフック**が設定されており、`git push`はClaude Code（AI側）から実行できない。pushが必要な場面では、コマンドを提示してユーザー自身に実行してもらう運用になっている
 - `gh pr create`はブランチが未pushの場合、自動pushはしてくれない（`--head`指定か事前pushが必要）
 - **`.github/workflows/`配下のファイルをpushするには、GitHub CLIの認証に`workflow`スコープが必要**。通常の`gh auth login`では付与されず、`! [remote rejected] ... (refusing to allow an OAuth App to create or update workflow ...)`で拒否される。`gh auth refresh -h github.com -s workflow`でスコープを追加し、`gh auth setup-git`でgitのcredential情報も更新して解決した
+- **GitHub PagesはFreeプランではPrivateリポジトリに使えない**。使うにはPublic化（またはPro以上へのアップグレード）が必要で、公開範囲が変わるため事前に中身の機密情報確認と、ユーザー本人への確認を挟んだ
 
 ## チェックポイント
 
@@ -93,3 +124,5 @@ PRを出すたびに、コーディング規約（jQuery1.11／ECMAScript5準拠
 - [x] ブランチを切って機能開発し、masterにマージできる
 - [x] PRを作成し、レビューを経てマージ〜ブランチ削除まで一通り行える
 - [x] GitHub Actionsで自動チェック（CI）が動く仕組みを作り、実際にpass/failを確認できる
+- [x] GitHub Pagesで自動デプロイ（CD）が動く仕組みを作り、実機（スマホ）から公開URLにアクセスできる
+- [x] CI/CDが揃った状態で、新機能追加→PR→マージ→自動反映のサイクルを繰り返し実行できる
