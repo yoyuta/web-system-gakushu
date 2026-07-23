@@ -83,6 +83,11 @@ function deleteItem(id) {
   renderList(filteredItems);
 }
 
+function clearAllItems() {
+  saveItems([]);
+  renderList([]);
+}
+
 $(document).ready(function () {
   renderList(loadItems());
 
@@ -108,5 +113,11 @@ $(document).ready(function () {
   $("#itemList").on("click", ".deleteButton", function () {
     var id = Number($(this).closest("li").attr("data-id"));
     deleteItem(id);
+  });
+
+  $("#clearAllButton").on("click", function () {
+    if (window.confirm("リストを全件削除します。よろしいですか？")) {
+      clearAllItems();
+    }
   });
 });
