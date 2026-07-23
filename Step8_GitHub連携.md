@@ -142,6 +142,34 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 
 **学び**: 「ルールを人が守る」から「ルールを仕組みが強制する」への発展。個人開発でも、CIが通らない変更を誤ってmasterに入れてしまうミスを構造的に防げる。
 
+## 10. マージコンフリクトの解消
+
+わざと同じ行を書き換える2つのブランチ（`demo/conflict-a`・`demo/conflict-b`）をmasterの同じコミットから作成し、実際にコンフリクトを起こして解消する練習をした。
+
+**手順**:
+1. masterの同じコミットから`demo/conflict-a`・`demo/conflict-b`を作成
+2. 両ブランチで、本ドキュメントの同じ行（学んだことリストの末尾）をそれぞれ別の内容で編集してコミット
+3. `demo/conflict-a`を先にpush → PR (`#7`) 作成 → CI pass → マージ。masterが更新される
+4. `demo/conflict-b`をpush → PR (`#8`) 作成 → `gh pr view --json mergeable`で`"mergeable":"CONFLICTING"`を確認。GitHub上でも「マージ不可」と表示される
+5. ローカルの`demo/conflict-b`で`git fetch origin` → `git merge origin/master`を実行し、実際にコンフリクトを発生させる:
+   ```
+   <<<<<<< HEAD
+   │  ⑧ マージコンフリクトの解消                       │
+   =======
+   │  ⑧ ブランチ保護ルールで直接pushを禁止              │
+   >>>>>>> origin/master
+   ```
+6. `<<<<<<<`〜`=======`〜`>>>>>>>`のマーカーを手で削除し、両方の変更を活かす形（⑧⑨に分けて両方残す）に編集
+7. `git add` → マージコミットを`git commit`（メッセージ引数なしでマージ用の既定メッセージを使用）→ push
+8. `gh pr view --json mergeable`が`"mergeable":"MERGEABLE"`に変化したことを確認し、PRをマージ
+
+**学び**:
+- コンフリクトは「他人と衝突したとき」だけでなく、**先にマージされた変更と自分のブランチが同じ箇所を触っていれば、ソロ開発でも普通に起きる**
+- `<<<<<<< HEAD`（自分の変更）と`>>>>>>> origin/master`（取り込もうとした変更）の間にある`=======`が境界線。どちらか一方を選ぶだけでなく、両方の意図を汲んで書き直してよい
+- `gh pr view --json mergeable`でPRが今マージ可能な状態かどうかをコマンドラインから確認できる
+
+**作成したPR**: https://github.com/yoyuta/web-system-gakushu/pull/7 、 https://github.com/yoyuta/web-system-gakushu/pull/8
+
 ## チェックポイント
 
 - [x] `git status`/`git diff`で変更内容を確認してからコミットできる
@@ -152,3 +180,4 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 - [x] GitHub Pagesで自動デプロイ（CD）が動く仕組みを作り、実機（スマホ）から公開URLにアクセスできる
 - [x] CI/CDが揃った状態で、新機能追加→PR→マージ→自動反映のサイクルを繰り返し実行できる
 - [x] ブランチ保護ルールを設定し、masterへの直接pushがGitHub側で拒否されることを確認できる
+- [x] 意図的にマージコンフリクトを発生させ、コンフリクトマーカーを読んで手動で解消できる
