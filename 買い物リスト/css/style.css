@@ -97,9 +97,36 @@ h1 {
   word-break: break-all;
 }
 
+#itemList li .quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 #itemList li .itemQuantity {
+  min-width: 1.5em;
+  text-align: center;
   color: #666;
   font-size: 0.9rem;
+}
+
+#itemList li .increaseButton,
+#itemList li .decreaseButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  line-height: 1;
+  color: #4a90d9;
+  background-color: #fff;
+  border: 1px solid #4a90d9;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#itemList li.purchased .increaseButton,
+#itemList li.purchased .decreaseButton {
+  color: #ccc;
+  border-color: #ccc;
 }
 
 #itemList li.purchased .itemName {

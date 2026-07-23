@@ -29,10 +29,16 @@ function renderList(items) {
     }
 
     var $name = $("<span></span>").addClass("itemName").text(item.name);
+
+    var $decreaseButton = $("<button></button>").attr("type", "button").addClass("decreaseButton").text("－");
     var $quantity = $("<span></span>").addClass("itemQuantity").text(item.quantity || 1);
+    var $increaseButton = $("<button></button>").attr("type", "button").addClass("increaseButton").text("＋");
+    var $quantityControls = $("<span></span>").addClass("quantityControls")
+      .append($decreaseButton).append($quantity).append($increaseButton);
+
     var $deleteButton = $("<button></button>").attr("type", "button").addClass("deleteButton").text("×");
 
-    $li.append($checkbox).append($name).append($quantity).append($deleteButton);
+    $li.append($checkbox).append($name).append($quantityControls).append($deleteButton);
     $list.append($li);
   }
 }
@@ -64,6 +70,34 @@ function toggleItem(id) {
   for (var i = 0; i < items.length; i++) {
     if (items[i].id === id) {
       items[i].purchased = !items[i].purchased;
+      break;
+    }
+  }
+  saveItems(items);
+  renderList(items);
+}
+
+function increaseQuantity(id) {
+  var items = loadItems();
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      items[i].quantity = (items[i].quantity || 1) + 1;
+      break;
+    }
+  }
+  saveItems(items);
+  renderList(items);
+}
+
+function decreaseQuantity(id) {
+  var items = loadItems();
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      if ((items[i].quantity || 1) <= 1) {
+        deleteItem(id);
+        return;
+      }
+      items[i].quantity = items[i].quantity - 1;
       break;
     }
   }
@@ -108,6 +142,16 @@ $(document).ready(function () {
   $("#itemList").on("click", ".purchaseCheckbox", function () {
     var id = Number($(this).closest("li").attr("data-id"));
     toggleItem(id);
+  });
+
+  $("#itemList").on("click", ".increaseButton", function () {
+    var id = Number($(this).closest("li").attr("data-id"));
+    increaseQuantity(id);
+  });
+
+  $("#itemList").on("click", ".decreaseButton", function () {
+    var id = Number($(this).closest("li").attr("data-id"));
+    decreaseQuantity(id);
   });
 
   $("#itemList").on("click", ".deleteButton", function () {
