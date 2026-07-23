@@ -211,6 +211,26 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 
 **作成したIssue/PR**: https://github.com/yoyuta/web-system-gakushu/issues/10 、 https://github.com/yoyuta/web-system-gakushu/pull/11
 
+**補足: Claude CodeにIssueの内容を読み取らせてそのまま実装させることは可能か**
+
+可能。やり方は大きく2通りある。
+
+```
+① 手動で指示する方法（Issue #10で実践済み）
+     gh issue view <番号>
+        ↓ Issueの本文（背景・やりたいこと・完了条件）を読み取る
+     ブランチ作成 → 内容通りに実装 → PR作成（closes #番号）
+
+② GitHub Actions経由で自動化する方法（未導入・発展学習）
+     Issueに@claudeとコメント／特定ラベルを付与
+        ↓
+     Claude Code GitHub ActionがIssueの内容を読み取り、
+     自動でブランチ作成〜実装〜PR作成まで無人で行う
+```
+
+- ①は`gh issue view`でIssue本文を読み取れるため、「Issue #番号の内容で実装して」と指示するだけで背景・完了条件まで汲み取って実装できる
+- ②はAnthropic提供の「Claude Code GitHub Action」を`.github/workflows/`に追加すると使える、より発展的な自動化。今のリポジトリには未導入
+
 ## チェックポイント
 
 - [x] `git status`/`git diff`で変更内容を確認してからコミットできる
