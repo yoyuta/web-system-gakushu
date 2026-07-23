@@ -16,7 +16,15 @@ function renderList(items) {
   var $list = $("#itemList");
   $list.empty();
 
+  var remainingCount = 0;
   for (var i = 0; i < items.length; i++) {
+    if (!items[i].purchased) {
+      remainingCount++;
+    }
+  }
+  $("#remainingCount").text("未購入: " + remainingCount + "件");
+
+  for (i = 0; i < items.length; i++) {
     var item = items[i];
     var $li = $("<li></li>").attr("data-id", item.id);
     if (item.purchased) {

@@ -22,6 +22,13 @@ h1 {
   color: #3a76b4;
 }
 
+#remainingCount {
+  margin: 0 0 12px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+}
+
 .inputRow {
   display: flex;
   gap: 8px;
