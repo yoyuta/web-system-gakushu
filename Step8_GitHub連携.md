@@ -170,6 +170,26 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 
 **作成したPR**: https://github.com/yoyuta/web-system-gakushu/pull/7 、 https://github.com/yoyuta/web-system-gakushu/pull/8
 
+## 11. Issueによるタスク管理
+
+機能追加をいきなり実装から始めるのではなく、GitHub Issueとして起票してから着手する流れを練習した。
+
+**手順**:
+1. `gh issue create --title "..." --body "..."` で機能要望を起票（背景・やりたいこと・完了条件を書く）
+2. `git checkout -b feature/xxx` で対応ブランチを作成し実装
+3. PR本文の先頭に`closes #10`のようにIssue番号を書いてPR作成（`closes`/`fixes`/`resolves`のいずれかのキーワード＋`#番号`でGitHubがリンクを認識する）
+4. PRをマージすると、紐付けたIssueが**自動でクローズ**される
+5. `gh issue view 10 --json state,closedAt`でクローズを確認
+
+**実践した題材**: 「未購入件数をヘッダーに表示する」（Issue #10 → PR #11）。`renderList()`内で未購入アイテム数を数え直し、`#remainingCount`に反映する小さな機能追加。
+
+**学び**:
+- Issueは「やることリスト」であると同時に、「なぜその変更をしたか」をPRやコミットから遡って追える記録にもなる
+- `closes #番号`はコミットメッセージに書いても効くが、PR本文に書いておくのが確実（複数コミットにまたがる変更でも1回書けば済む）
+- ソロ開発でもIssueを起票してから着手する習慣を持つと、後から「これは何のための変更だったか」を思い出しやすい
+
+**作成したIssue/PR**: https://github.com/yoyuta/web-system-gakushu/issues/10 、 https://github.com/yoyuta/web-system-gakushu/pull/11
+
 ## チェックポイント
 
 - [x] `git status`/`git diff`で変更内容を確認してからコミットできる
@@ -181,3 +201,4 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 - [x] CI/CDが揃った状態で、新機能追加→PR→マージ→自動反映のサイクルを繰り返し実行できる
 - [x] ブランチ保護ルールを設定し、masterへの直接pushがGitHub側で拒否されることを確認できる
 - [x] 意図的にマージコンフリクトを発生させ、コンフリクトマーカーを読んで手動で解消できる
+- [x] Issueを起票し、PRに`closes #番号`を書いてマージ時に自動クローズされることを確認できる
