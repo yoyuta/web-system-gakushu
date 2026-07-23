@@ -321,6 +321,28 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 
 **学び**: このリポジトリはGitHub Pagesへの自動デプロイを組んでいるため、実はGit Flow向きの構成ではない。ブランチ戦略は「かっこいいから採用する」ものではなく、リリース頻度やCD構成に合わせて選ぶもの、という判断軸を持てた。
 
+**補足: develop/featureという名前自体に機能的な違いはあるか**
+
+ない。Gitにとって`master`も`develop`も`feature/xxx`も、すべて「特定のコミットを指すポインタ」という点で完全に同じであり、Git自体は名前に特別な意味を持たせていない。
+
+```
+Gitから見た場合（すべて同じ「ブランチ」というポインタ）
+
+  master ●   develop ●   feature/xxx ●   release/1.0 ●
+   └──────────┴──────────┴──────────────┴─────────────┘
+        Gitにとってはどれも「特定のコミットを指す名前」でしかない
+```
+
+実際に挙動の違いが生まれるのは、名前に基づいて**外側のツールが**ルールを設定しているから。
+
+| 何が | どこで設定 | このプロジェクトの例 |
+|---|---|---|
+| ブランチ保護ルール | GitHubのリポジトリ設定 | `master`にのみ保護ルールを設定（9章）。`develop`があっても自動では保護されない |
+| CI/CDの発火条件 | `.github/workflows/*.yml`の`on.push.branches` | `ci.yml`/`deploy.yml`は`branches: [master]`と明記しているので`master`にしか反応しない |
+| デフォルトブランチ | GitHubのリポジトリ設定 | `git clone`の既定チェックアウト先、PRの既定マージ先 |
+
+`git flow`という拡張コマンド（`git flow feature start xxx`など）も、中身は普通の`git branch`/`checkout`/`merge`を自動実行しているだけの補助ツールであり、Git本体に「featureブランチ」という新概念を追加しているわけではない。
+
 ## 13. Releaseとタグ管理
 
 「今のアプリの状態」に区切りをつけて`v1.0.0`として公開する練習をした。
