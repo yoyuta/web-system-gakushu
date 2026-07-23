@@ -368,6 +368,32 @@ gh release create v1.0.0 --title "v1.0.0 - 初回リリース" --target master -
 
 **作成したRelease**: https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.0.0
 
+**続けて実践: パッチリリース（v1.0.1）**
+
+v1.0.0公開後に見つけたバグ（数量欄でEnterキーを押しても追加されない）を、Issue起票からリリースまで通しで実践した。
+
+```
+Issue #17 起票（バグ報告）
+     │
+     ▼
+fix/quantity-enter-key ブランチで修正
+     │
+     ▼
+PR #18（closes #17）→ CI pass → マージ → Issue自動クローズ
+     │
+     ▼
+gh release create v1.0.1 --notes "..."
+     │
+     ▼
+v1.0.0 → v1.0.1（バグ修正のみなので Z を+1）
+```
+
+- 新機能ではなく**バグ修正のみ**なので、セマンティックバージョニングに従い`v1.0.0`→`v1.0.1`（パッチ）とした
+- リリースノートに`https://github.com/.../compare/v1.0.0...v1.0.1`という比較リンクを入れると、2バージョン間の差分をGitHub上でそのまま確認できる
+- 「Issueで管理する（11章）」「PRでマージする（4章）」「リリースする（本章）」が、実際には1本のつながった流れであることを体感できた
+
+**作成したIssue/PR/Release**: https://github.com/yoyuta/web-system-gakushu/issues/17 、 https://github.com/yoyuta/web-system-gakushu/pull/18 、 https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.0.1
+
 ## チェックポイント
 
 - [x] `git status`/`git diff`で変更内容を確認してからコミットできる
