@@ -29,23 +29,30 @@ function renderList(items) {
     }
 
     var $name = $("<span></span>").addClass("itemName").text(item.name);
+    var $quantity = $("<span></span>").addClass("itemQuantity").text(item.quantity || 1);
     var $deleteButton = $("<button></button>").attr("type", "button").addClass("deleteButton").text("×");
 
-    $li.append($checkbox).append($name).append($deleteButton);
+    $li.append($checkbox).append($name).append($quantity).append($deleteButton);
     $list.append($li);
   }
 }
 
-function addItem(name) {
+function addItem(name, quantity) {
   var trimmedName = name.replace(/^\s+|\s+$/g, "");
   if (trimmedName === "") {
     return;
+  }
+
+  var parsedQuantity = parseInt(quantity, 10);
+  if (isNaN(parsedQuantity) || parsedQuantity < 1) {
+    parsedQuantity = 1;
   }
 
   var items = loadItems();
   items.push({
     id: Date.now(),
     name: trimmedName,
+    quantity: parsedQuantity,
     purchased: false
   });
   saveItems(items);
@@ -80,14 +87,16 @@ $(document).ready(function () {
   renderList(loadItems());
 
   $("#addButton").on("click", function () {
-    addItem($("#itemInput").val());
+    addItem($("#itemInput").val(), $("#quantityInput").val());
     $("#itemInput").val("").focus();
+    $("#quantityInput").val("1");
   });
 
   $("#itemInput").on("keydown", function (event) {
     if (event.which === 13) {
-      addItem($("#itemInput").val());
+      addItem($("#itemInput").val(), $("#quantityInput").val());
       $("#itemInput").val("").focus();
+      $("#quantityInput").val("1");
     }
   });
 
