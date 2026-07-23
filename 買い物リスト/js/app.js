@@ -44,9 +44,10 @@ function renderList(items) {
     var $quantityControls = $("<span></span>").addClass("quantityControls")
       .append($decreaseButton).append($quantity).append($increaseButton);
 
+    var $editButton = $("<button></button>").attr("type", "button").addClass("editButton").text("✎");
     var $deleteButton = $("<button></button>").attr("type", "button").addClass("deleteButton").text("×");
 
-    $li.append($checkbox).append($name).append($quantityControls).append($deleteButton);
+    $li.append($checkbox).append($name).append($quantityControls).append($editButton).append($deleteButton);
     $list.append($li);
   }
 }
@@ -69,6 +70,26 @@ function addItem(name, quantity) {
     quantity: parsedQuantity,
     purchased: false
   });
+  saveItems(items);
+  renderList(items);
+}
+
+function editItemName(id) {
+  var items = loadItems();
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      var newName = window.prompt("アイテム名を編集", items[i].name);
+      if (newName === null) {
+        return;
+      }
+      var trimmedName = newName.replace(/^\s+|\s+$/g, "");
+      if (trimmedName === "") {
+        return;
+      }
+      items[i].name = trimmedName;
+      break;
+    }
+  }
   saveItems(items);
   renderList(items);
 }
@@ -158,6 +179,11 @@ $(document).ready(function () {
   $("#itemList").on("click", ".purchaseCheckbox", function () {
     var id = Number($(this).closest("li").attr("data-id"));
     toggleItem(id);
+  });
+
+  $("#itemList").on("click", ".editButton", function () {
+    var id = Number($(this).closest("li").attr("data-id"));
+    editItemName(id);
   });
 
   $("#itemList").on("click", ".increaseButton", function () {
