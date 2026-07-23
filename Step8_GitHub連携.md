@@ -14,6 +14,7 @@
 │  ⑩ マージコンフリクトの解消                       │
 │  ⑪ Issueによるタスク管理（closes連携）             │
 │  ⑫ ブランチ戦略（GitHub Flow / Git Flow）           │
+│  ⑬ Releaseとタグ管理                              │
 └───────────────────────────────────────────┘
 ```
 
@@ -320,6 +321,53 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 
 **学び**: このリポジトリはGitHub Pagesへの自動デプロイを組んでいるため、実はGit Flow向きの構成ではない。ブランチ戦略は「かっこいいから採用する」ものではなく、リリース頻度やCD構成に合わせて選ぶもの、という判断軸を持てた。
 
+**補足: develop/featureという名前自体に機能的な違いはあるか**
+
+ない。Gitにとって`master`も`develop`も`feature/xxx`も、すべて「特定のコミットを指すポインタ」という点で完全に同じであり、Git自体は名前に特別な意味を持たせていない。
+
+```
+Gitから見た場合（すべて同じ「ブランチ」というポインタ）
+
+  master ●   develop ●   feature/xxx ●   release/1.0 ●
+   └──────────┴──────────┴──────────────┴─────────────┘
+        Gitにとってはどれも「特定のコミットを指す名前」でしかない
+```
+
+実際に挙動の違いが生まれるのは、名前に基づいて**外側のツールが**ルールを設定しているから。
+
+| 何が | どこで設定 | このプロジェクトの例 |
+|---|---|---|
+| ブランチ保護ルール | GitHubのリポジトリ設定 | `master`にのみ保護ルールを設定（9章）。`develop`があっても自動では保護されない |
+| CI/CDの発火条件 | `.github/workflows/*.yml`の`on.push.branches` | `ci.yml`/`deploy.yml`は`branches: [master]`と明記しているので`master`にしか反応しない |
+| デフォルトブランチ | GitHubのリポジトリ設定 | `git clone`の既定チェックアウト先、PRの既定マージ先 |
+
+`git flow`という拡張コマンド（`git flow feature start xxx`など）も、中身は普通の`git branch`/`checkout`/`merge`を自動実行しているだけの補助ツールであり、Git本体に「featureブランチ」という新概念を追加しているわけではない。
+
+## 13. Releaseとタグ管理
+
+「今のアプリの状態」に区切りをつけて`v1.0.0`として公開する練習をした。
+
+**概念**:
+- `git tag`：特定のコミットに名前を付ける機能。軽量タグ（コミットへの単なる目印）と注釈付きタグ（`git tag -a`。作成者・日時・メッセージを持つ、より正式な記録）の2種類がある
+- セマンティックバージョニング（`vX.Y.Z`）：`X`=互換性のない変更、`Y`=後方互換な機能追加、`Z`=バグ修正、という意味付けの慣習
+- GitHub Releases：タグに「リリースノート」（変更内容の説明文）を紐付けて公開する機能
+
+**コマンド**:
+```
+gh release create v1.0.0 --title "v1.0.0 - 初回リリース" --target master --notes "..."
+```
+`git tag`を先に作らなくても、`gh release create`が指定コミット（`--target`）に対してタグを自動作成し、同時にGitHub Release（リリースノート付き）も作成してくれる。
+
+**つまずいたポイント**: `gh release create`で作られたタグは**軽量タグ**だった（`git cat-file -t v1.0.0`が`commit`を返し、`tag`ではなかった）。リリースノートの本文はgitタグのメッセージではなく、GitHub Release側のメタデータとして別に保存されている。`git tag -a`でローカルから作る場合と挙動が違う点に注意。
+
+**ローカルへの反映**: `git fetch --tags`でリモートのタグをローカルに取り込める。
+
+**学び**:
+- タグは「コミットに名前を付ける」だけのシンプルな仕組みだが、GitHub Releaseと組み合わせることで「このバージョンで何ができるか」を後から追える記録になる
+- `gh release create`はタグ作成とリリース公開を1コマンドで済ませられるので、ローカルで先にタグを打つ必要はない
+
+**作成したRelease**: https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.0.0
+
 ## チェックポイント
 
 - [x] `git status`/`git diff`で変更内容を確認してからコミットできる
@@ -333,3 +381,4 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 - [x] 意図的にマージコンフリクトを発生させ、コンフリクトマーカーを読んで手動で解消できる
 - [x] Issueを起票し、PRに`closes #番号`を書いてマージ時に自動クローズされることを確認できる
 - [x] GitHub FlowとGit Flowの違いを説明でき、自分のプロジェクトがどちらに向いているか判断できる
+- [x] `gh release create`でタグ付きのGitHub Releaseを作成し、公開できる
