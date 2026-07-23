@@ -7,6 +7,7 @@
 │  ② GitHubリモートとの連携（アカウント〜push）      │
 │  ③ ブランチを切っての機能開発                     │
 │  ④ Pull Request経由のレビュー・マージフロー        │
+│  ⑤ GitHub ActionsによるCI（自動チェック）         │
 └───────────────────────────────────────────┘
 ```
 
@@ -62,10 +63,28 @@
 
 **作成したPR**: https://github.com/yoyuta/web-system-gakushu/pull/1 （全件削除ボタンの追加）
 
-## 5. このプロジェクト特有の注意点
+## 5. GitHub ActionsによるCI
+
+PRを出すたびに、コーディング規約（jQuery1.11／ECMAScript5準拠）を自動チェックする仕組みを追加した。
+
+| ファイル | 役割 |
+|---|---|
+| `package.json` / `package-lock.json` | ESLintを devDependency として管理 |
+| `.eslintrc.json` | `parserOptions.ecmaVersion: 5` を指定。アロー関数・`let`/`const`など**ES6構文が入るとパースエラーになる**ため、規約違反をそのまま構文エラーとして検出できる |
+| `.github/workflows/ci.yml` | `push`/`pull_request`（対象: `master`）で `npm ci` → `npx eslint 買い物リスト/js/**/*.js` を実行 |
+
+**検証手順**:
+1. ローカルで`npx eslint 買い物リスト/js/app.js`を実行し0件エラーを確認
+2. 意図的にアロー関数を書いた別ファイルで実行し、`Parsing error: Unexpected token )`で検出されることを確認
+3. PR (`#2`) を作成し、実際にGitHub Actions上で`lint`ジョブが`pass`することを確認してからマージ
+
+**作成したPR**: https://github.com/yoyuta/web-system-gakushu/pull/2 （CI追加）
+
+## 6. このプロジェクト特有の注意点
 
 - `~/.claude/hooks/`に**危険なgitコマンドをブロックするフック**が設定されており、`git push`はClaude Code（AI側）から実行できない。pushが必要な場面では、コマンドを提示してユーザー自身に実行してもらう運用になっている
 - `gh pr create`はブランチが未pushの場合、自動pushはしてくれない（`--head`指定か事前pushが必要）
+- **`.github/workflows/`配下のファイルをpushするには、GitHub CLIの認証に`workflow`スコープが必要**。通常の`gh auth login`では付与されず、`! [remote rejected] ... (refusing to allow an OAuth App to create or update workflow ...)`で拒否される。`gh auth refresh -h github.com -s workflow`でスコープを追加し、`gh auth setup-git`でgitのcredential情報も更新して解決した
 
 ## チェックポイント
 
@@ -73,3 +92,4 @@
 - [x] GitHubアカウント作成〜`gh` CLIでの認証〜リモートリポジトリ作成ができる
 - [x] ブランチを切って機能開発し、masterにマージできる
 - [x] PRを作成し、レビューを経てマージ〜ブランチ削除まで一通り行える
+- [x] GitHub Actionsで自動チェック（CI）が動く仕組みを作り、実際にpass/failを確認できる
