@@ -147,6 +147,14 @@ $(document).ready(function () {
     }
   });
 
+  $("#quantityInput").on("keydown", function (event) {
+    if (event.which === 13) {
+      addItem($("#itemInput").val(), $("#quantityInput").val());
+      $("#itemInput").val("").focus();
+      $("#quantityInput").val("1");
+    }
+  });
+
   $("#itemList").on("click", ".purchaseCheckbox", function () {
     var id = Number($(this).closest("li").attr("data-id"));
     toggleItem(id);
