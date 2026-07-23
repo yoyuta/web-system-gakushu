@@ -268,6 +268,52 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 | `release/x.x` | リリース準備用。develop→releaseでバグ修正のみ行い、完了したらmasterとdevelop両方へマージ |
 | `hotfix/xxx` | 本番の緊急バグ修正用。masterから切ってmasterとdevelopへマージ |
 
+**構造図（役割の全体像）**:
+
+```
+┌───────────────────────────────────────────────────────────┐
+│                                                             │
+│   feature/login ──┐                                        │
+│   feature/cart  ──┼──▶ develop ──▶ release/1.0 ──▶ master  │
+│   feature/search──┘        ▲              │                │
+│                             └──────────────┘                │
+│                       （バグ修正はdevelopにも反映）           │
+└───────────────────────────────────────────────────────────┘
+```
+
+**時系列で見た実際の流れ（v1.0リリースの例）**:
+
+```
+  master   ─────────────────────────────────●(v1.0タグ)──▶
+                                             ▲
+  release/1.0          ┌────●──●(バグ修正)───┘
+                        │                └──────┐
+  develop  ──●──●──●────┴───●──●──●──●──●──●──●──●──▶
+              │  │              │
+              │  │              └feature/search ──┘
+              │  └feature/cart ─────┘
+              └feature/login ───────┘
+
+  ① feature/login・feature/cart を develop にマージ
+  ② そろそろリリース → develop から release/1.0 を切る
+  ③ release/1.0 上でバグ修正のみ実施（新機能は追加しない）
+  ④ release/1.0 を master にマージ＋タグ付け（v1.0として公開）
+  ⑤ release/1.0 の修正を develop にも取り込む（developが後追いにならないように）
+  ⑥ release/1.0 は役目を終えたら削除
+  ⑦ develop では次の feature/search などの開発が並行して続いている
+```
+
+**このプロジェクト（GitHub Flow）との対比**:
+
+```
+  GitHub Flow:  feature ──▶ master ──▶ 自動デプロイ（今すぐ本番へ）
+  Git Flow:     feature ──▶ develop ──▶ release ──▶ master ──▶ タグでリリース
+                             （開発の最新）  （安定化）  （本番のみ）
+```
+
+**「develop本数を増やす」ではなく「releaseを都度切る」が正解**:
+リリース時期が複数ある場合、develop自体を複製する（develop1, develop2…）のではなく、developから`release/x.x`を都度切り出す。develop はあくまで1本だけを保つのがGit Flowの前提。逆に「リリース後も長期間、旧バージョンのバグ修正を続ける」ような場合は、developとは別に`1.x`のような長命の保守ブランチをmasterの先にぶら下げる、という別パターンで対応する。
+
 **使い分けの判断基準**:
 - **継続的デプロイ**（pushすればすぐ公開したい）→ GitHub Flowが向く。develop分岐があると「developには入ったがmasterにはまだ」という**ズレた状態**が生まれ、CDの仕組みと相性が悪い
 - **バージョンを区切ってリリース**（例: 月1回のリリース、複数バージョンを並行サポート）→ Git Flowが向く。「開発中のもの」と「今世に出ているもの」を明確に分けられる
