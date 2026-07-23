@@ -103,6 +103,11 @@ h1 {
   background-color: #fff8e1;
 }
 
+#itemList li.held .itemName,
+#itemList li.held .itemQuantity {
+  color: #999;
+}
+
 #itemList li .itemName {
   flex: 1;
   word-break: break-all;
@@ -135,9 +140,12 @@ h1 {
 }
 
 #itemList li.purchased .increaseButton,
-#itemList li.purchased .decreaseButton {
+#itemList li.purchased .decreaseButton,
+#itemList li.held .increaseButton,
+#itemList li.held .decreaseButton {
   color: #ccc;
   border-color: #ccc;
+  cursor: not-allowed;
 }
 
 #itemList li.purchased .itemName {

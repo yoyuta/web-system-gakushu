@@ -16,18 +16,19 @@ function renderList(items) {
   var $list = $("#itemList");
   $list.empty();
 
+  var purchasedCount = 0;
   var heldCount = 0;
   var remainingCount = 0;
   for (var i = 0; i < items.length; i++) {
-    if (!items[i].purchased) {
-      if (items[i].held) {
-        heldCount++;
-      } else {
-        remainingCount++;
-      }
+    if (items[i].purchased) {
+      purchasedCount++;
+    } else if (items[i].held) {
+      heldCount++;
+    } else {
+      remainingCount++;
     }
   }
-  $("#remainingCount").text("保留: " + heldCount + "件　未購入: " + remainingCount + "件");
+  $("#remainingCount").text("購入: " + purchasedCount + "件　未購入: " + remainingCount + "件　保留: " + heldCount + "件");
 
   for (i = 0; i < items.length; i++) {
     var item = items[i];
@@ -43,12 +44,19 @@ function renderList(items) {
     if (item.purchased) {
       $checkbox.prop("checked", true);
     }
+    if (item.held) {
+      $checkbox.prop("disabled", true);
+    }
 
     var $name = $("<span></span>").addClass("itemName").text(item.name);
 
     var $decreaseButton = $("<button></button>").attr("type", "button").addClass("decreaseButton").text("－");
     var $quantity = $("<span></span>").addClass("itemQuantity").text(item.quantity || 1);
     var $increaseButton = $("<button></button>").attr("type", "button").addClass("increaseButton").text("＋");
+    if (item.held) {
+      $decreaseButton.prop("disabled", true);
+      $increaseButton.prop("disabled", true);
+    }
     var $quantityControls = $("<span></span>").addClass("quantityControls")
       .append($decreaseButton).append($quantity).append($increaseButton);
 
@@ -120,6 +128,7 @@ function toggleHeld(id) {
   for (var i = 0; i < items.length; i++) {
     if (items[i].id === id) {
       items[i].held = !items[i].held;
+      items[i].purchased = false;
       break;
     }
   }
