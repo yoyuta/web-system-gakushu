@@ -16,19 +16,27 @@ function renderList(items) {
   var $list = $("#itemList");
   $list.empty();
 
+  var heldCount = 0;
   var remainingCount = 0;
   for (var i = 0; i < items.length; i++) {
     if (!items[i].purchased) {
-      remainingCount++;
+      if (items[i].held) {
+        heldCount++;
+      } else {
+        remainingCount++;
+      }
     }
   }
-  $("#remainingCount").text("未購入: " + remainingCount + "件");
+  $("#remainingCount").text("保留: " + heldCount + "件　未購入: " + remainingCount + "件");
 
   for (i = 0; i < items.length; i++) {
     var item = items[i];
     var $li = $("<li></li>").attr("data-id", item.id);
     if (item.purchased) {
       $li.addClass("purchased");
+    }
+    if (item.held) {
+      $li.addClass("held");
     }
 
     var $checkbox = $("<input>").attr("type", "checkbox").addClass("purchaseCheckbox");
@@ -44,10 +52,11 @@ function renderList(items) {
     var $quantityControls = $("<span></span>").addClass("quantityControls")
       .append($decreaseButton).append($quantity).append($increaseButton);
 
+    var $holdButton = $("<button></button>").attr("type", "button").addClass("holdButton").text(item.held ? "解除" : "保留");
     var $editButton = $("<button></button>").attr("type", "button").addClass("editButton").text("✎");
     var $deleteButton = $("<button></button>").attr("type", "button").addClass("deleteButton").text("×");
 
-    $li.append($checkbox).append($name).append($quantityControls).append($editButton).append($deleteButton);
+    $li.append($checkbox).append($name).append($quantityControls).append($holdButton).append($editButton).append($deleteButton);
     $list.append($li);
   }
 }
@@ -99,6 +108,18 @@ function toggleItem(id) {
   for (var i = 0; i < items.length; i++) {
     if (items[i].id === id) {
       items[i].purchased = !items[i].purchased;
+      break;
+    }
+  }
+  saveItems(items);
+  renderList(items);
+}
+
+function toggleHeld(id) {
+  var items = loadItems();
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      items[i].held = !items[i].held;
       break;
     }
   }
@@ -184,6 +205,11 @@ $(document).ready(function () {
   $("#itemList").on("click", ".editButton", function () {
     var id = Number($(this).closest("li").attr("data-id"));
     editItemName(id);
+  });
+
+  $("#itemList").on("click", ".holdButton", function () {
+    var id = Number($(this).closest("li").attr("data-id"));
+    toggleHeld(id);
   });
 
   $("#itemList").on("click", ".increaseButton", function () {
