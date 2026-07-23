@@ -173,6 +173,24 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 
 **作成したPR**: https://github.com/yoyuta/web-system-gakushu/pull/7 、 https://github.com/yoyuta/web-system-gakushu/pull/8
 
+**補足: 修正した行数・場所が違えばコンフリクトにならない？**
+
+判断基準は「行番号」ではなく「変更箇所（前後の文脈を含む差分のかたまり＝hunk）が重なっているかどうか」。Gitの3-way mergeは、両ブランチの変更箇所が重なっていなければ、行数や合計の変更量が違っていても自動的に両方を取り込む（コンフリクトにならない）。
+
+```
+ケース1: 離れた行を編集 → 自動マージ成功
+  A: 3行目を編集         B: 5行目を編集
+       └── 重なっていないので両方そのまま取り込める
+
+ケース2: 同じ行/隣接する行を編集 → コンフリクト
+  A: 2行目を編集         B: 2行目を編集
+       └── 同じ場所なので <<<<<<< が発生
+```
+
+- 「同じ行」でなくても、diffの文脈（デフォルト前後3行）が重なっていればコンフリクトになることがある
+- 片方が「編集」、もう片方が同じ行を「削除」した場合はmodify/deleteという別種のコンフリクトになる
+- 今回`demo/conflict-a`・`demo/conflict-b`で**あえて全く同じ行**を編集したのは、確実にコンフリクトを再現するための意図的な設定だった
+
 ## 11. Issueによるタスク管理
 
 機能追加をいきなり実装から始めるのではなく、GitHub Issueとして起票してから着手する流れを練習した。
@@ -192,6 +210,26 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 - ソロ開発でもIssueを起票してから着手する習慣を持つと、後から「これは何のための変更だったか」を思い出しやすい
 
 **作成したIssue/PR**: https://github.com/yoyuta/web-system-gakushu/issues/10 、 https://github.com/yoyuta/web-system-gakushu/pull/11
+
+**補足: Claude CodeにIssueの内容を読み取らせてそのまま実装させることは可能か**
+
+可能。やり方は大きく2通りある。
+
+```
+① 手動で指示する方法（Issue #10で実践済み）
+     gh issue view <番号>
+        ↓ Issueの本文（背景・やりたいこと・完了条件）を読み取る
+     ブランチ作成 → 内容通りに実装 → PR作成（closes #番号）
+
+② GitHub Actions経由で自動化する方法（未導入・発展学習）
+     Issueに@claudeとコメント／特定ラベルを付与
+        ↓
+     Claude Code GitHub ActionがIssueの内容を読み取り、
+     自動でブランチ作成〜実装〜PR作成まで無人で行う
+```
+
+- ①は`gh issue view`でIssue本文を読み取れるため、「Issue #番号の内容で実装して」と指示するだけで背景・完了条件まで汲み取って実装できる
+- ②はAnthropic提供の「Claude Code GitHub Action」を`.github/workflows/`に追加すると使える、より発展的な自動化。今のリポジトリには未導入
 
 ## チェックポイント
 
