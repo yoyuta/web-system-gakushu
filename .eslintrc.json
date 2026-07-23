@@ -3,6 +3,9 @@
     "browser": true,
     "jquery": true
   },
+  "globals": {
+    "Sortable": "readonly"
+  },
   "parserOptions": {
     "ecmaVersion": 5,
     "sourceType": "script"

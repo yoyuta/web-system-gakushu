@@ -40,6 +40,8 @@ function renderList(items) {
       $li.addClass("held");
     }
 
+    var $dragHandle = $("<span></span>").addClass("dragHandle").text("⠿");
+
     var $checkbox = $("<input>").attr("type", "checkbox").addClass("purchaseCheckbox");
     if (item.purchased) {
       $checkbox.prop("checked", true);
@@ -64,7 +66,7 @@ function renderList(items) {
     var $editButton = $("<button></button>").attr("type", "button").addClass("editButton").text("✎");
     var $deleteButton = $("<button></button>").attr("type", "button").addClass("deleteButton").text("×");
 
-    $li.append($checkbox).append($name).append($quantityControls).append($holdButton).append($editButton).append($deleteButton);
+    $li.append($dragHandle).append($checkbox).append($name).append($quantityControls).append($holdButton).append($editButton).append($deleteButton);
     $list.append($li);
   }
 }
@@ -136,6 +138,21 @@ function toggleHeld(id) {
   renderList(items);
 }
 
+function reorderItems() {
+  var items = loadItems();
+  var newOrder = [];
+  $("#itemList li").each(function () {
+    var id = Number($(this).attr("data-id"));
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].id === id) {
+        newOrder.push(items[i]);
+        break;
+      }
+    }
+  });
+  saveItems(newOrder);
+}
+
 function increaseQuantity(id) {
   var items = loadItems();
   for (var i = 0; i < items.length; i++) {
@@ -183,6 +200,14 @@ function clearAllItems() {
 
 $(document).ready(function () {
   renderList(loadItems());
+
+  Sortable.create(document.getElementById("itemList"), {
+    handle: ".dragHandle",
+    animation: 150,
+    onEnd: function () {
+      reorderItems();
+    }
+  });
 
   $("#addButton").on("click", function () {
     addItem($("#itemInput").val(), $("#quantityInput").val());
