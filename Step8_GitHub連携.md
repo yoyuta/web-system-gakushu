@@ -147,6 +147,17 @@ gh api repos/yoyuta/web-system-gakushu/branches/master/protection -X PUT --input
 
 **学び**: 「ルールを人が守る」から「ルールを仕組みが強制する」への発展。個人開発でも、CIが通らない変更を誤ってmasterに入れてしまうミスを構造的に防げる。
 
+**実際に助けられたケース**: 機能追加を続ける中で、ブランチを切り忘れて`master`上で直接ファイルを編集してしまったことがあった。`git push`しようとする前に`git status`で気づき、以下の手順で復旧した。
+
+```
+① master上で編集してしまった（まだコミット前）
+② git checkout -b feature/xxx  ← 今の変更を持ったまま新しいブランチを作成
+③ git add・commit はこの新しいブランチ上で行う
+④ 通常通りpush → PR → マージ
+```
+
+`git checkout -b`は今の作業内容（コミット前の変更）を保持したままブランチを切り替えられるため、「うっかりmasterで作業してしまった」ことに気づいた時点でこの手順を踏めば、変更を失わずに正規のフローへ戻せる。ブランチ保護ルールが「pushする前」ではなく「pushする時」に発動する仕組みだと理解していたからこそ、慌てずに対処できた。
+
 ## 10. マージコンフリクトの解消
 
 わざと同じ行を書き換える2つのブランチ（`demo/conflict-a`・`demo/conflict-b`）をmasterの同じコミットから作成し、実際にコンフリクトを起こして解消する練習をした。
@@ -393,6 +404,16 @@ v1.0.0 → v1.0.1（バグ修正のみなので Z を+1）
 - 「Issueで管理する（11章）」「PRでマージする（4章）」「リリースする（本章）」が、実際には1本のつながった流れであることを体感できた
 
 **作成したIssue/PR/Release**: https://github.com/yoyuta/web-system-gakushu/issues/17 、 https://github.com/yoyuta/web-system-gakushu/pull/18 、 https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.0.1
+
+**続けて実践: マイナーリリース（v1.1.0）とパッチリリース（v1.1.1）**
+
+複数のPR（編集機能・保留機能・購入件数表示・ドラッグ&ドロップ）を積み重ねた後、区切りとして`v1.1.0`をリリース。新機能の追加なのでセマンティックバージョニングに従い`Y`を+1（`v1.0.1`→`v1.1.0`、`Z`は0に戻る）。その後に行ったUI微調整（レイアウト変更のみ、機能追加なし）は`v1.1.1`としてパッチリリースした。
+
+- **リリースすべきタイミングの見極め方**: `git log v1.1.0..master --oneline`のように「タグ..ブランチ」の範囲指定でコミットを見ると、直近のリリース以降にどんな変更が積み上がっているかを確認できる。「そろそろ区切りをつけていいか」の判断材料になる
+- **既存のリリース一覧の確認**: `gh release list`で、これまで作成したReleaseとその最新版（`Latest`ラベル）を一覧できる
+- 機能追加は`Y`、UI調整やバグ修正のみなら`Z`、という判断を実際に2回繰り返して体に馴染ませた
+
+**作成したRelease**: https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.1.0 、 https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.1.1
 
 ## チェックポイント
 
