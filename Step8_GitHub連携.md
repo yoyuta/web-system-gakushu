@@ -15,7 +15,7 @@
 │  ⑪ Issueによるタスク管理（closes連携）             │
 │  ⑫ ブランチ戦略（GitHub Flow / Git Flow）           │
 │  ⑬ Releaseとタグ管理                              │
-│  ⑭ CIへの自動テスト導入                            │
+│  ⑭ CIへのテスト組み込み（テストの書き方はStep9参照）  │
 └───────────────────────────────────────────┘
 ```
 
@@ -416,22 +416,16 @@ v1.0.0 → v1.0.1（バグ修正のみなので Z を+1）
 
 **作成したRelease**: https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.1.0 、 https://github.com/yoyuta/web-system-gakushu/releases/tag/v1.1.1
 
-## 14. CIへの自動テスト導入
+## 14. CIへのテスト組み込み
 
-これまでのCIはESLintによる構文チェックのみだった。ロジックが実際に正しく動くかは手動のブラウザ確認頼みだったため、Jestによる自動テストを追加した。
+これまでのCIはESLintによる構文チェックのみだった。ロジックが実際に正しく動くかは手動のブラウザ確認頼みだったため、Jestによる自動テストを追加した。**テストの書き方そのもの（Jest環境構築・テストケースの中身）はGitHub固有の話ではないため`Step9_自動テスト.md`にまとめており、本章はそれをGitHubの仕組みに統合した部分だけを扱う。**
 
-**構成**:
+**GitHubに関わる構成**:
 
 | ファイル | 役割 |
 |---|---|
-| `買い物リスト/js/app.js`末尾 | `typeof module !== "undefined"`で分岐し、Node/Jestからのみ`module.exports`でロジック関数（`addItem`/`toggleHeld`/`deleteStore`等）を公開。ブラウザでは`module`が存在しないためこのブロックは実行されず、動作に影響しない |
-| `tests/jest.setup.js` | `global.$`にjQueryを、`global.Sortable`にダミーの`create`関数をセットし、app.jsをrequireしても落ちないようにする |
-| `tests/app.test.js` | `addItem`のトリム・数量バリデーション、`toggleHeld`で購入が自動解除される挙動、`decreaseQuantity`で数量1の削除、`deleteStore`での未設定への移動、`clearAllItems`の挙動などをテスト |
-| `package.json` | `jest`/`jest-environment-jsdom`/`jquery`をdevDependencyに追加。`"test": "jest"`スクリプトと`testEnvironment: "jsdom"`を設定 |
 | `.github/workflows/ci.yml` | `lint`ジョブに加えて`test`ジョブ（`npm test`）を追加 |
-| `.eslintrc.json` | `globals`に`module`を追加（Node向けの分岐コードをES5構文チェックの対象として許可するため） |
-
-**テストコードはES5縛りの対象外**: `.eslintrc.json`のlint対象は`買い物リスト/js/**/*.js`のみなので、`tests/`配下は通常のNode.js構文で書ける。app.js本体（ブラウザで動く部分）だけがjQuery1.11/ES5の制約を受ける、という境界線を保った。
+| `.eslintrc.json` | `globals`に`module`を追加（Step9で追加したNode向けエクスポート分岐コードを、ES5構文チェックの対象として許可するため） |
 
 **つまずいたポイント**: PRを作成した直後、CIのlint/testジョブが6分以上`queued`のまま進まなかった。`gh api .../actions/runs/<ID>`で`status: "queued"`を確認し、GitHub Actions側のランナー割り当て待ちと判断してそのまま待機。最終的には正常に完了した（実行時間自体は14〜18秒）。CIが固まったように見えても、まず「キュー待ちか、実際に失敗しているか」を切り分けることを学んだ。
 
@@ -453,4 +447,4 @@ v1.0.0 → v1.0.1（バグ修正のみなので Z を+1）
 - [x] Issueを起票し、PRに`closes #番号`を書いてマージ時に自動クローズされることを確認できる
 - [x] GitHub FlowとGit Flowの違いを説明でき、自分のプロジェクトがどちらに向いているか判断できる
 - [x] `gh release create`でタグ付きのGitHub Releaseを作成し、公開できる
-- [x] Jestで自動テストを追加し、CIのtestジョブとブランチ保護の必須チェックに組み込める
+- [x] CIにtestジョブを追加し、ブランチ保護の必須チェックにも組み込める（テストの書き方自体はStep9参照）
