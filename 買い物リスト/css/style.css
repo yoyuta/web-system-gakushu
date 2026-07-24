@@ -90,8 +90,8 @@ h1 {
 
 #itemList li {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: stretch;
+  gap: 8px;
   padding: 12px;
   margin-bottom: 8px;
   background-color: #fff;
@@ -99,7 +99,24 @@ h1 {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+#itemList li .itemMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#itemList li .itemButtons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 #itemList li .dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #bbb;
   font-size: 1.1rem;
   cursor: grab;
@@ -123,6 +140,7 @@ h1 {
 #itemList li .itemName {
   flex: 1;
   word-break: break-all;
+  font-size: 0.85rem;
 }
 
 #itemList li .quantityControls {
@@ -140,10 +158,11 @@ h1 {
 
 #itemList li .increaseButton,
 #itemList li .decreaseButton {
-  width: 28px;
-  height: 28px;
+  width: 16px;
+  height: 16px;
   padding: 0;
   line-height: 1;
+  font-size: 0.65rem;
   color: #4a90d9;
   background-color: #fff;
   border: 1px solid #4a90d9;
@@ -169,7 +188,7 @@ h1 {
   border: 1px solid #d9a441;
   background-color: #fff;
   color: #a8720f;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   line-height: 1;
   cursor: pointer;
   padding: 4px 8px;

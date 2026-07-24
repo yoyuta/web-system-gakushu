@@ -66,7 +66,13 @@ function renderList(items) {
     var $editButton = $("<button></button>").attr("type", "button").addClass("editButton").text("✎");
     var $deleteButton = $("<button></button>").attr("type", "button").addClass("deleteButton").text("×");
 
-    $li.append($dragHandle).append($checkbox).append($name).append($quantityControls).append($holdButton).append($editButton).append($deleteButton);
+    var $itemButtons = $("<div></div>").addClass("itemButtons")
+      .append($holdButton).append($editButton).append($deleteButton);
+
+    var $itemMain = $("<div></div>").addClass("itemMain")
+      .append($checkbox).append($name).append($quantityControls).append($itemButtons);
+
+    $li.append($dragHandle).append($itemMain);
     $list.append($li);
   }
 }
