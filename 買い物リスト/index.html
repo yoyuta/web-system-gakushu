@@ -11,13 +11,18 @@
   <h1>🛒 買い物リスト 🛒</h1>
   <p id="remainingCount"></p>
 
+  <div class="storeInputRow">
+    <input type="text" id="storeInput" placeholder="店舗名を入力">
+    <button type="button" id="addStoreButton">店舗追加</button>
+  </div>
+
   <div class="inputRow">
     <input type="text" id="itemInput" placeholder="アイテム名を入力">
     <input type="number" id="quantityInput" min="1" value="1">
     <button type="button" id="addButton">追加</button>
   </div>
 
-  <ul id="itemList"></ul>
+  <div id="itemGroups"></div>
 
   <button type="button" id="clearAllButton">全件削除</button>
 </div>
