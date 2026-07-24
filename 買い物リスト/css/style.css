@@ -82,13 +82,79 @@ h1 {
   background-color: #fdecea;
 }
 
-#itemList {
+.storeInputRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+#storeInput {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+#addStoreButton {
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  color: #4a90d9;
+  background-color: #fff;
+  border: 1px solid #4a90d9;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#addStoreButton:active {
+  background-color: #eaf2fb;
+}
+
+.storeGroup {
+  margin-bottom: 16px;
+}
+
+.storeHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  border-bottom: 1px solid #d7e3f0;
+  padding-bottom: 4px;
+}
+
+.storeDragHandle {
+  color: #bbb;
+  font-size: 1rem;
+  cursor: grab;
+  touch-action: none;
+  padding: 2px;
+}
+
+.storeHeaderText {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #3a76b4;
+}
+
+.deleteStoreButton {
+  border: none;
+  background: none;
+  color: #c0392b;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+}
+
+.storeItemList {
   list-style: none;
   margin: 0;
   padding: 0;
+  min-height: 8px;
 }
 
-#itemList li {
+.storeItemList li {
   display: flex;
   align-items: stretch;
   gap: 8px;
@@ -99,7 +165,7 @@ h1 {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-#itemList li .itemMain {
+.storeItemList li .itemMain {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -107,13 +173,13 @@ h1 {
   gap: 8px;
 }
 
-#itemList li .itemButtons {
+.storeItemList li .itemButtons {
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
-#itemList li .dragHandle {
+.storeItemList li .dragHandle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,40 +190,40 @@ h1 {
   padding: 4px;
 }
 
-#itemList li.sortable-ghost {
+.storeItemList li.sortable-ghost {
   opacity: 0.4;
 }
 
-#itemList li.held {
+.storeItemList li.held {
   background-color: #fff8e1;
 }
 
-#itemList li.held .itemName,
-#itemList li.held .itemQuantity {
+.storeItemList li.held .itemName,
+.storeItemList li.held .itemQuantity {
   color: #999;
 }
 
-#itemList li .itemName {
+.storeItemList li .itemName {
   flex: 1;
   word-break: break-all;
   font-size: 0.85rem;
 }
 
-#itemList li .quantityControls {
+.storeItemList li .quantityControls {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-#itemList li .itemQuantity {
+.storeItemList li .itemQuantity {
   min-width: 1.5em;
   text-align: center;
   color: #666;
   font-size: 0.9rem;
 }
 
-#itemList li .increaseButton,
-#itemList li .decreaseButton {
+.storeItemList li .increaseButton,
+.storeItemList li .decreaseButton {
   width: 16px;
   height: 16px;
   padding: 0;
@@ -170,21 +236,21 @@ h1 {
   cursor: pointer;
 }
 
-#itemList li.purchased .increaseButton,
-#itemList li.purchased .decreaseButton,
-#itemList li.held .increaseButton,
-#itemList li.held .decreaseButton {
+.storeItemList li.purchased .increaseButton,
+.storeItemList li.purchased .decreaseButton,
+.storeItemList li.held .increaseButton,
+.storeItemList li.held .decreaseButton {
   color: #ccc;
   border-color: #ccc;
   cursor: not-allowed;
 }
 
-#itemList li.purchased .itemName {
+.storeItemList li.purchased .itemName {
   text-decoration: line-through;
   color: #999;
 }
 
-#itemList li .holdButton {
+.storeItemList li .holdButton {
   border: 1px solid #d9a441;
   background-color: #fff;
   color: #a8720f;
@@ -196,12 +262,12 @@ h1 {
   white-space: nowrap;
 }
 
-#itemList li.held .holdButton {
+.storeItemList li.held .holdButton {
   background-color: #d9a441;
   color: #fff;
 }
 
-#itemList li .editButton {
+.storeItemList li .editButton {
   border: none;
   background: none;
   color: #4a90d9;
@@ -211,7 +277,7 @@ h1 {
   padding: 4px 8px;
 }
 
-#itemList li .deleteButton {
+.storeItemList li .deleteButton {
   border: none;
   background: none;
   color: #c0392b;
