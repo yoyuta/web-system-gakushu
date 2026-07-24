@@ -404,3 +404,22 @@ $(document).ready(function () {
     }
   });
 });
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    loadItems: loadItems,
+    saveItems: saveItems,
+    addItem: addItem,
+    editItemName: editItemName,
+    toggleItem: toggleItem,
+    toggleHeld: toggleHeld,
+    increaseQuantity: increaseQuantity,
+    decreaseQuantity: decreaseQuantity,
+    deleteItem: deleteItem,
+    clearAllItems: clearAllItems,
+    loadStores: loadStores,
+    saveStores: saveStores,
+    addStore: addStore,
+    deleteStore: deleteStore
+  };
+}
