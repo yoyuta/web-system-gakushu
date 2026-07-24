@@ -96,6 +96,18 @@ DOM描画（jQueryでの要素生成やSortableJSの見た目）まで含めた�
 
 ①に当てはまるのは`addItem`関連の3件のみで、`toggleHeld`/`decreaseQuantity`/`deleteStore`/`clearAllItems`の4件はどれも**引数自体は正常**であり、「その関数を呼んだ結果、他のデータや状態がどう変わるか（副作用・業務ルール）」を確認している。引数の正常系/異常系だけでなく、関数の性質に応じてこの3パターンを使い分けることが、意味のあるテストを書くうえでの視点になる。
 
+**補足: テスト対象は関数の一部のみ（網羅はしていない）**
+
+`app.js`には現在17個の関数があるが、テストを書いたのはそのうち5個（`addItem`・`toggleHeld`・`decreaseQuantity`・`deleteStore`・`clearAllItems`）だけ。残り12個は今回テスト対象外にした。
+
+| 未テストの関数 | 対象外にした理由 |
+|---|---|
+| `loadItems`/`saveItems`/`loadStores`/`saveStores` | localStorageの読み書きだけの単純な処理。テスト済みの他関数を通じて間接的に動作確認できている |
+| `renderList` | DOM描画そのもの。「ロジックの正しさ」と「DOM描画の正しさ」を分けて考え、今回は意図的にテスト対象外とした |
+| `toggleItem`/`increaseQuantity`/`deleteItem`/`editItemName`/`addStore`/`reorderItems`/`reorderStores` | 条件分岐や副作用の構造が、既にテストした`toggleHeld`や`decreaseQuantity`などと似ている。全網羅ではなく、境界値・業務ルール・入力検証が絡む箇所を優先した結果、代表的なものに絞った |
+
+自動テストは「全部の関数を必ずテストする」ものではなく、「バグが混入しやすい箇所（条件分岐・副作用・境界値がある箇所）を優先してカバーする」という考え方で書いてよい。
+
 ## チェックポイント
 
 - [x] なぜ自動テストが必要かを、手動確認との違いで説明できる
