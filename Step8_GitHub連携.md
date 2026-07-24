@@ -7,7 +7,7 @@
 │  ② GitHubリモートとの連携（アカウント〜push）      │
 │  ③ ブランチを切っての機能開発                     │
 │  ④ Pull Request経由のレビュー・マージフロー        │
-│  ⑤ GitHub ActionsによるCI（自動チェック）         │
+│  ⑤ GitHub ActionsによるCI（ESLintで自動チェック）  │
 │  ⑥ GitHub PagesへのCD（自動デプロイ）             │
 │  ⑦ PR→CI→マージ→自動デプロイの反復サイクル        │
 │  ⑨ ブランチ保護ルールで直接pushを禁止              │
@@ -75,7 +75,7 @@
 
 ## 5. GitHub ActionsによるCI
 
-PRを出すたびに、コーディング規約（jQuery1.11／ECMAScript5準拠）を自動チェックする仕組みを追加した。
+PRを出すたびに、ESLintでコーディング規約（jQuery1.11／ECMAScript5準拠）を自動チェックする仕組みを追加した。
 
 | ファイル | 役割 |
 |---|---|
