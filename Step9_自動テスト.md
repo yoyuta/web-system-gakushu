@@ -26,6 +26,8 @@
 
 似たツールとして、Jestとほぼ同じ書き方ができるより高速な後発ツール**Vitest**（Viteベースのプロジェクトでよく使われる）や、古くからある**Mocha + Chai**の組み合わせ（Mochaはアサーション部分を別ライブラリと組み合わせる構成）がある。
 
+**jsdomとは**: JavaScriptだけでブラウザのDOM（`document`/`window`や`document.getElementById`など）を再現するライブラリ。Node.jsには本来ブラウザがないため、`document`や`localStorage`のようなブラウザ専用のAPIは存在しない。jsdomを使うと、Node.js上に「疑似的なブラウザ環境」を用意でき、ブラウザ向けに書かれたコード（今回の`app.js`のようなjQueryコード）をそのままNode.js上で動かして検証できる。Jestは`testEnvironment: "jsdom"`と設定するだけでこの環境を自動的に用意してくれる（実体は`jest-environment-jsdom`というパッケージ）。
+
 `買い物リスト/js/app.js`はビルドツールなしでブラウザの`<script>`タグから直接読み込まれる、素のjQuery 1.11コード。モジュールシステム（`import`/`export`）を使っていないため、そのままではNode.js（Jest）から関数を読み込めない。
 
 **対応した点**:
