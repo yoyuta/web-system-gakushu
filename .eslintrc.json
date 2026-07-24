@@ -4,7 +4,8 @@
     "jquery": true
   },
   "globals": {
-    "Sortable": "readonly"
+    "Sortable": "readonly",
+    "module": "readonly"
   },
   "parserOptions": {
     "ecmaVersion": 5,
