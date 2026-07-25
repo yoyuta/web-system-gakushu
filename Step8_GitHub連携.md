@@ -16,6 +16,7 @@
 │  ⑫ ブランチ戦略（GitHub Flow / Git Flow）           │
 │  ⑬ Releaseとタグ管理                              │
 │  ⑭ CIへのテスト組み込み（テストの書き方はStep9参照）  │
+│  ⑮ Claude Code GitHub Action（@claudeで自動実装/レビュー）│
 └───────────────────────────────────────────┘
 ```
 
@@ -420,6 +421,33 @@ v1.0.0 → v1.0.1（バグ修正のみなので Z を+1）
 
 **CIとは**: 「Continuous Integration（継続的インテグレーション）」の略。複数人・複数ブランチで書いたコードを1つ（例: master）にまとめる「Integration（統合）」を、都度・自動で行うのが「Continuous（継続的）」の意味。要は「コードの変更をmasterに統合するたびに、自動でビルド・テスト・構文チェックなどを実行する仕組み」のこと。このプロジェクトでは`.github/workflows/ci.yml`がそれにあたり、PRを出すたびにGitHub Actions上で`lint`（ESLint）と`test`（Jest）が自動実行される。対になる用語として**CD**（Continuous Delivery/Deployment、継続的デリバリー/デプロイ）もあり、こちらは「統合が終わったコードを自動で本番環境に届ける・公開する」仕組みを指す（このプロジェクトでは`deploy.yml`がGitHub Pagesへの自動デプロイを担当。6章参照）。
 
+**CI/CDとGitHub Actionsの関係**:
+
+```
+┌────────────────────────────────────────────┐
+│  GitHub Actions（自動化を実行するプラットフォーム）│
+│                                              │
+│   ┌──────────┐   ┌──────────┐   ┌────────┐ │
+│   │   CI     │   │   CD     │   │ その他  │ │
+│   │ ci.yml   │   │deploy.yml│   │claude.yml│ │
+│   │(lint/test)│  │(Pages公開)│   │(@claude)│ │
+│   └──────────┘   └──────────┘   └────────┘ │
+│                                              │
+│   ↑ CI/CDは「目的」の名前                     │
+│   ↑ GitHub Actionsは「それを実行する仕組み」の名前│
+└────────────────────────────────────────────┘
+```
+
+| | CI | CD | GitHub Actions |
+|---|---|---|---|
+| 種類 | 目的（概念） | 目的（概念） | 手段（基盤・プラットフォーム） |
+| 目的 | 変更が既存コードと問題なく統合できるか確認 | 統合済みのコードを実際に届ける・公開する | GitHub上でイベント（push/PR/Issue等）をきっかけに自動処理を実行する仕組み全般 |
+| このリポジトリでの実装 | `.github/workflows/ci.yml` | `.github/workflows/deploy.yml` | `ci.yml`・`deploy.yml`・`claude.yml`・`claude-code-review.yml` は**すべて**GitHub Actions上で動くワークフロー |
+| 対応する概念 | CIはGitHub Actionsで実現される用途の1つ | CDも同様にGitHub Actionsで実現される用途の1つ | CI/CD以外も実行できる（例: 15章の`@claude`自動応答は、CIでもCDでもない別用途） |
+| 失敗したら | マージをブロック（ブランチ保護ルール） | そもそもCIが通らないと動かない | ワークフロー自体が動かない・エラーで停止する |
+
+**ポイント**: CI/CDは「何のためにやるか」という目的の名前、GitHub Actionsは「GitHub上でそれをどう自動実行するか」という仕組みの名前。CIでもCDでもない自動化（15章のClaude Code GitHub Action）もGitHub Actions上で動いている。
+
 これまでのCIはESLintによる構文チェックのみだった。ロジックが実際に正しく動くかは手動のブラウザ確認頼みだったため、Jestによる自動テストを追加した。**テストの書き方そのもの（Jest環境構築・テストケースの中身）はGitHub固有の話ではないため`Step9_自動テスト.md`にまとめており、本章はそれをGitHubの仕組みに統合した部分だけを扱う。**
 
 **GitHubに関わる構成**:
@@ -434,6 +462,138 @@ v1.0.0 → v1.0.1（バグ修正のみなので Z を+1）
 **ブランチ保護ルールの更新**: 新しく追加した`test`ジョブも、9章で設定した必須ステータスチェックに追加した（`["lint"]` → `["lint", "test"]`）。CIにチェックを追加しただけでは自動的に必須化されないため、この更新を忘れると`test`が落ちていてもマージできてしまう。
 
 **作成したIssue/PR**: https://github.com/yoyuta/web-system-gakushu/issues/32 、 https://github.com/yoyuta/web-system-gakushu/pull/33
+
+## 15. Claude Code GitHub Action
+
+Issueやコメントで`@claude`とメンションすると、Claude Codeが自動でブランチ作成〜実装〜PR作成まで無人で行う仕組み。あわせて、PR作成時に自動でコードレビューを行う仕組みも導入した。11章の補足で「未導入・発展学習」としていたものを実際に導入した記録。
+
+**導入方法**:
+
+```
+cd "Webシステム学習"
+claude
+```
+セッション内で以下を実行するだけで、GitHub Appのインストール〜ワークフロー追加〜Secrets設定までを対話形式で一括セットアップしてくれる。
+
+```
+/install-github-app
+```
+
+**このコマンドが自動で行うこと**:
+
+| 内容 | 詳細 |
+|---|---|
+| ワークフロー追加 | `.github/workflows/claude.yml`（`@claude`メンションへの自動応答）と`.github/workflows/claude-code-review.yml`（PR作成時の自動レビュー）を新しいブランチにpush |
+| 認証方式 | GitHub SecretsにOAuthトークン（`CLAUDE_CODE_OAUTH_TOKEN`）を登録。`ANTHROPIC_API_KEY`を直接使う方式ではない |
+| 使用アクション | `anthropics/claude-code-action@v1` |
+
+その後は通常通り、生成されたブランチから`gh pr create`でPRを作成し、CIを確認してマージする（4〜5章と同じ流れ）。
+
+**つまずいたポイント①: `gh`コマンドが見つからない**
+
+```
+Error: Failed to access repository yoyuta/web-system-gakushu:
+Command 'gh' not found or is in an unsafe location (current directory)
+```
+
+`gh` CLI自体はインストール済み・PATHにも登録済みだったが、**VSCode（Claude Codeを動かしているプロセス）がPATH更新前から起動しっぱなし**だったため、子プロセスに新しいPATHが反映されていなかった。VSCodeを完全に再起動し、ターミナルで`gh --version`が通ることを確認してから再実行して解決した。
+
+**つまずいたポイント②: GitHub App未インストールによる401エラー**
+
+ワークフロー追加・Secrets設定は完了したが、PRを作成してCIを回すと`claude-review`ジョブだけが失敗した。
+
+```
+App token exchange failed: 401 Unauthorized -
+Claude Code is not installed on this repository.
+Please install the Claude Code GitHub App at https://github.com/apps/claude
+```
+
+`/install-github-app`はワークフローファイルの生成とSecrets登録までは自動で行うが、**GitHub App本体のインストール（ブラウザでの許可操作）は別途手動で必要**だった。`https://github.com/apps/claude`を開き、対象リポジトリを選んでインストールし、失敗したジョブを`gh run rerun <実行ID> --failed`で再実行したところpassした。
+
+**動作確認**:
+
+1. ワークフロー追加PR（[#37](https://github.com/yoyuta/web-system-gakushu/pull/37)）で`claude-review`ジョブが実際に走り、pass（このPR自体はYAML追加のみでレビュー指摘事項がなかったため、コメントなしの「サイレント合格」だった）
+2. マージ後、動作確認用に`@claude このリポジトリの目的を1文で説明してください`とだけ書いたテストIssue（[#38](https://github.com/yoyuta/web-system-gakushu/issues/38)）を作成
+3. `claude`という名前のbotアカウントが自動でコメント返信し、リポジトリの内容を正しく要約して回答
+4. 動作確認できたのでIssueをクローズ
+
+**学び**:
+- `/install-github-app`は便利だが「ワークフロー追加」「Secrets設定」「App本体のインストール」のうち、ブラウザでの同意が必要なApp本体のインストールだけは自動化されない（＝AIが代行できない領域）
+- コマンドが「エラーなく完了したように見えても」、実際に動くかは別問題。ワークフローYAMLが追加されただけでは不十分で、PRやIssueで実際にトリガーしてログを見るまでが動作確認
+- `gh run rerun <ID> --failed`で、原因を直してから失敗したジョブだけを再実行できる（PRを作り直す必要はない）
+- セキュリティ面：`@claude`は現状誰でもメンション可能な設定（Publicリポジトリのため）。悪用防止には、ワークフロー側で投稿者を権限者に絞る条件分岐や、`claude_args: '--max-turns 5'`のような暴走防止設定を追加する余地がある（未設定・今後の課題）
+
+**補足①: なぜCI/CDはApp未インストールでも動いていたのか**
+
+`ci.yml`/`deploy.yml`は5〜6章の時点からずっと問題なく動いていたのに、今回`claude-review`ジョブだけが401エラーで失敗した。理由は認証の仕組みが違うため。
+
+```
+┌──────────────────────────────────────────────────┐
+│  GitHub Actions基盤（全リポジトリで最初から有効）       │
+│                                                    │
+│  ci.yml / deploy.yml                              │
+│    └ GitHubが自動発行する GITHUB_TOKEN だけで動く    │
+│      （このリポジトリの中で完結する操作のみ）           │
+│      → 追加インストール不要。5〜6章の時点で             │
+│        既に動いていた                                │
+│                                                    │
+│  claude.yml / claude-code-review.yml               │
+│    └ "claude" という別アカウント（Botアプリ）として     │
+│      コメント投稿・PRレビューをする必要がある            │
+│      → GITHUB_TOKENだけでは権限が足りず、              │
+│        別途「Claude」GitHub Appのインストールと         │
+│        OAuthトークン交換が必須                        │
+└──────────────────────────────────────────────────┘
+```
+
+| | ci.yml / deploy.yml | claude.yml / claude-code-review.yml |
+|---|---|---|
+| 動作に必要な認証 | GitHubが自動で発行する`GITHUB_TOKEN`（リポジトリ内で完結） | 「Claude」という外部Botアカウントとしての認証（`CLAUDE_CODE_OAUTH_TOKEN`＋GitHub App） |
+| App導入の要否 | 不要（GitHub Actions自体は全リポジトリ標準機能） | 必要（`https://github.com/apps/claude`のインストール） |
+
+**補足②: 「GitHub Actions」と「Claude Code GitHub Action」の違い**
+
+似た名前だが階層が違う。「GitHub Actions」は土台（プラットフォーム）、「Claude Code GitHub Action」（`anthropics/claude-code-action`）はその上で動く1つの部品（既製アクション）。
+
+```
+┌───────────────────────────────────────────────────┐
+│ GitHub Actions（GitHubの標準機能＝土台）                │
+│  「何かが起きたら(push/PR/Issueコメント等)、             │
+│    自動で処理を実行する」という仕組みそのもの              │
+│  → リポジトリ作成時から誰でも使える。追加インストール不要   │
+│                                                     │
+│  この土台の上で「ワークフロー(.ymlファイル)」を書く。      │
+│  ワークフローの中身は「ステップ」の積み重ねで、             │
+│  各ステップは既製の部品（= アクション）を呼び出せる。       │
+│                                                     │
+│   ┌─────────────┐  ┌─────────────────────┐      │
+│   │ 自作の処理      │  │ 既製の「アクション」部品   │      │
+│   │ npm ci          │  │ actions/checkout@v4    │      │
+│   │ npx eslint      │  │ anthropics/            │      │
+│   │ npm test        │  │  claude-code-action@v1 │ ←ここ│
+│   └─────────────┘  └─────────────────────┘      │
+└───────────────────────────────────────────────────┘
+```
+
+「GitHub Actions」＝家全体の電気配線・コンセント（インフラ）、「Claude Code GitHub Action」＝そのコンセントに挿す特定の家電の1つ（Anthropicが作った既製品）。同じ「Action(s)」という単語が土台の名前にも部品の名前にも使われているのが紛らわしさの正体。
+
+| 時期 | 追加したもの | 使った部品 | GitHub App必要？ |
+|---|---|---|---|
+| 5章 | `ci.yml`（ESLintチェック） | `actions/checkout` など汎用部品 | 不要（`GITHUB_TOKEN`で完結） |
+| 6章 | `deploy.yml`（Pages自動公開） | `actions/deploy-pages` など汎用部品 | 不要（同上） |
+| 14章 | `ci.yml`にtestジョブ追加 | 同上＋Jest | 不要（同上） |
+| 15章（本章） | `claude.yml`/`claude-code-review.yml` | `anthropics/claude-code-action` | 必要（`github.com/apps/claude`） |
+
+土台（GitHub Actions）自体は最初からずっと同じもので、変わっていない。変わったのは「そこにどんな部品を挿したか」。5〜14章までは自分たちのリポジトリの中だけで完結する汎用部品しか使っていなかったのに対し、今回は「`claude`という外部のBotアカウントとして振る舞う」特殊な部品を挿したため、その部品専用の許可（GitHub Appインストール）が別途必要になった。
+
+**導入した目的（3つ目の自動化として）**:
+- CI: コードが壊れていないか自動チェック
+- CD: 公開まで自動化
+- **Claude Code GitHub Action: 実装作業そのもの・レビューそのものを自動化**（Issueに`@claude`と書くだけで実装〜PR作成、PR作成時に自動レビュー）
+
+これまでは「書いたコードのチェックと公開」を自動化していたが、今回は「コードを書く／レビューする」という工程自体を自動化する部品を、GitHub Actionsという同じ土台の上に追加した、という位置づけ。
+
+**作成したPR/Issue**: https://github.com/yoyuta/web-system-gakushu/pull/37 、 https://github.com/yoyuta/web-system-gakushu/issues/38
 
 ## チェックポイント
 
@@ -450,3 +610,4 @@ v1.0.0 → v1.0.1（バグ修正のみなので Z を+1）
 - [x] GitHub FlowとGit Flowの違いを説明でき、自分のプロジェクトがどちらに向いているか判断できる
 - [x] `gh release create`でタグ付きのGitHub Releaseを作成し、公開できる
 - [x] CIにtestジョブを追加し、ブランチ保護の必須チェックにも組み込める（テストの書き方自体はStep9参照）
+- [x] `/install-github-app`でClaude Code GitHub Actionを導入し、GitHub Appのインストールまで含めて`@claude`メンションへの自動応答・PRの自動レビューが動くことを確認できる
