@@ -489,6 +489,43 @@ claude
 
 その後は通常通り、生成されたブランチから`gh pr create`でPRを作成し、CIを確認してマージする（4〜5章と同じ流れ）。
 
+**2つのワークフローの処理内容**:
+
+同じ`anthropics/claude-code-action@v1`を使っているが、`prompt`が自由入力か固定かで役割が異なる。
+
+`claude.yml`（`@claude`メンション応答用）:
+
+| 項目 | 内容 |
+|---|---|
+| 発火条件（`on:`） | Issueコメント作成／PRレビューコメント作成／Issue作成・アサイン／PRレビュー提出のいずれか |
+| 実行条件（`if:`） | 上記イベントの本文（コメント本文／レビュー本文／Issue本文またはタイトル）に**`@claude`という文字列が含まれる場合のみ**実行 |
+| 権限 | `contents/pull-requests/issues: read`、`id-token: write`、`actions: read`（PRのCI結果をClaudeが読めるようにするため） |
+| 処理内容 | checkout後、`prompt`は未指定＝**メンションされたコメント/Issueに書かれた指示内容をそのままClaudeへの指示として実行**する自由記述型 |
+
+`claude-code-review.yml`（PR自動レビュー用）:
+
+| 項目 | 内容 |
+|---|---|
+| 発火条件（`on:`） | PRの作成・更新（synchronize）・Draft解除・再オープン。**`@claude`メンション不要、PRを出すだけで毎回自動実行** |
+| 権限 | `contents/pull-requests/issues: read`、`id-token: write`（`actions: read`は無し） |
+| 処理内容 | `prompt`が**固定**: `/code-review:code-review <repo>/pull/<PR番号>`。`plugin_marketplaces`でAnthropic公式リポジトリ（`anthropics/claude-code`）を指定し、そこに含まれる`code-review`という既製プラグインを読み込んで実行する |
+
+**`code-review`プラグインの中身（`anthropics/claude-code`リポジトリで確認）**:
+
+```
+Step1: PR情報取得（クローズ/ドラフト/レビュー済み判定）
+Step2: 変更ファイルのみ収集（PRの差分のみ。リポジトリ全体は見ない）
+Step3: サブエージェント4体を並列起動
+  ├─ Sonnet ×2 → CLAUDE.md準拠チェック
+  └─ Opus   ×2 → バグ・ロジックエラー検出（構文/型エラー、未解決参照、
+                  確実に誤動作するロジックエラーなどの「高シグナル」のみ）
+Step4: 各指摘に信頼度スコア(0-100)を付与、80未満は破棄（誤検知抑制）
+```
+
+- スタイルの好みや主観的な改善提案は明示的に対象外
+- `--comment`フラグを付けた場合のみ、GitHub上にインラインコメント（問題ごとに個別、6行以内の修正提案付き）を投稿する設計。付けない場合はターミナル（Actionsのログ）出力のみ
+- 実際にPR #37・#39・#41の実行ログを確認したところ、`--comment`フラグは付けていないが、レビュー自体は実際に実行されていた（170秒・24ターン・$1.32のAPIコストを計測）。最終的に`post-buffered-inline-comments.ts`が「No buffered inline comments」と出力しており、これは「設定不足で何もしていない」のではなく「実際にレビューした結果、指摘事項が0件だった」ことを意味する
+
 **つまずいたポイント①: `gh`コマンドが見つからない**
 
 ```
