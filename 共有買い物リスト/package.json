@@ -1,0 +1,13 @@
+{
+  "name": "kyoyu-kaimono-list",
+  "private": true,
+  "version": "1.0.0",
+  "description": "共有買い物リスト（サーバー連携版・自宅Wi-Fi限定）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.2"
+  }
+}
