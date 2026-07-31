@@ -73,3 +73,29 @@ test("saveFilterStateで保存した値をloadFilterStateで取得できる", fu
   app.saveFilterState(false);
   expect(app.loadFilterState()).toBe(false);
 });
+
+test("renderListはフィルタONのとき保留アイテムを描画しない", function () {
+  document.body.innerHTML = '<div id="itemGroups"></div><p id="remainingCount"></p>';
+  app.addItem("卵", "1");
+  var id = app.loadItems()[0].id;
+  app.toggleHeld(id);
+
+  app.saveFilterState(false);
+  app.renderList(app.loadItems());
+  expect($("li[data-id='" + id + "']").length).toBe(1);
+
+  app.saveFilterState(true);
+  app.renderList(app.loadItems());
+  expect($("li[data-id='" + id + "']").length).toBe(0);
+});
+
+test("renderListの件数表示はフィルタ状態に関わらず全件ベースで集計する", function () {
+  document.body.innerHTML = '<div id="itemGroups"></div><p id="remainingCount"></p>';
+  app.addItem("卵", "1");
+  var id = app.loadItems()[0].id;
+  app.toggleHeld(id);
+
+  app.saveFilterState(true);
+  app.renderList(app.loadItems());
+  expect($("#remainingCount").text()).toContain("保留: 1件");
+});

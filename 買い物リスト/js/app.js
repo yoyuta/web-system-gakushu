@@ -75,6 +75,7 @@ function deleteStore(storeName) {
 function renderList(items) {
   var $groups = $("#itemGroups");
   $groups.empty();
+  var hideHeld = loadFilterState();
 
   var purchasedCount = 0;
   var heldCount = 0;
@@ -114,6 +115,9 @@ function renderList(items) {
     for (i = 0; i < items.length; i++) {
       var item = items[i];
       if ((item.store || UNASSIGNED_STORE) !== storeName) {
+        continue;
+      }
+      if (item.held && hideHeld) {
         continue;
       }
 
@@ -426,6 +430,7 @@ if (typeof module !== "undefined" && module.exports) {
     decreaseQuantity: decreaseQuantity,
     deleteItem: deleteItem,
     clearAllItems: clearAllItems,
+    renderList: renderList,
     loadStores: loadStores,
     saveStores: saveStores,
     loadFilterState: loadFilterState,
