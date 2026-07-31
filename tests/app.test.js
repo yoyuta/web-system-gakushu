@@ -139,3 +139,16 @@ test("updateToggleButtonLabelはフィルタ状態に応じてボタン文言を
   app.updateToggleButtonLabel(true);
   expect($("#toggleHeldButton").text()).toBe("保留を表示");
 });
+
+test("フィルタONでも未購入・購入済みアイテムは表示される", function () {
+  document.body.innerHTML = '<div id="itemGroups"></div><p id="remainingCount"></p>';
+  app.saveItems([
+    { id: 1, name: "牛乳", quantity: 1, purchased: false, store: "", held: false },
+    { id: 2, name: "卵",   quantity: 1, purchased: true,  store: "", held: false },
+    { id: 3, name: "米",   quantity: 1, purchased: false, store: "", held: true  }
+  ]);
+  app.saveFilterState(true);
+  app.renderList(app.loadItems());
+  expect($("#itemGroups li").length).toBe(2);
+  expect($("li[data-id='3']").length).toBe(0);
+});
