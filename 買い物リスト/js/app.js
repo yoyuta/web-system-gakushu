@@ -360,6 +360,7 @@ function clearAllItems() {
 
 $(document).ready(function () {
   renderList(loadItems());
+  updateToggleButtonLabel(loadFilterState());
 
   Sortable.create(document.getElementById("itemGroups"), {
     handle: ".storeDragHandle",
@@ -438,6 +439,11 @@ $(document).ready(function () {
   $("#itemGroups").on("click", ".deleteButton", function () {
     var id = Number($(this).closest("li").attr("data-id"));
     deleteItem(id);
+  });
+
+  $("#toggleHeldButton").on("click", function () {
+    var hideHeld = toggleHeldFilter();
+    updateToggleButtonLabel(hideHeld);
   });
 
   $("#clearAllButton").on("click", function () {
