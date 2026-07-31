@@ -1,5 +1,6 @@
 var STORAGE_KEY = "shoppingList";
 var STORE_KEY = "shoppingStores";
+var FILTER_KEY = "shoppingFilterHideHeld";
 var UNASSIGNED_STORE = "";
 
 function loadItems() {
@@ -24,6 +25,14 @@ function loadStores() {
 
 function saveStores(stores) {
   localStorage.setItem(STORE_KEY, JSON.stringify(stores));
+}
+
+function loadFilterState() {
+  return localStorage.getItem(FILTER_KEY) === "1";
+}
+
+function saveFilterState(hideHeld) {
+  localStorage.setItem(FILTER_KEY, hideHeld ? "1" : "0");
 }
 
 function addStore(name) {
@@ -66,6 +75,7 @@ function deleteStore(storeName) {
 function renderList(items) {
   var $groups = $("#itemGroups");
   $groups.empty();
+  var hideHeld = loadFilterState();
 
   var purchasedCount = 0;
   var heldCount = 0;
@@ -105,6 +115,9 @@ function renderList(items) {
     for (i = 0; i < items.length; i++) {
       var item = items[i];
       if ((item.store || UNASSIGNED_STORE) !== storeName) {
+        continue;
+      }
+      if (item.held && hideHeld) {
         continue;
       }
 
@@ -243,18 +256,36 @@ function reorderItems() {
     itemsById[items[i].id] = items[i];
   }
 
+  var includedIds = {};
   var newOrder = [];
+  var storeOrder = [];
   $(".storeItemList").each(function () {
     var store = $(this).attr("data-store");
+    storeOrder.push(store);
     $(this).find("li").each(function () {
       var id = Number($(this).attr("data-id"));
       var item = itemsById[id];
       if (item) {
         item.store = store;
         newOrder.push(item);
+        includedIds[id] = true;
       }
     });
   });
+
+  if (loadFilterState()) {
+    for (var s = 0; s < storeOrder.length; s++) {
+      var store = storeOrder[s];
+      for (i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (item.held && !includedIds[item.id] && (item.store || UNASSIGNED_STORE) === store) {
+          newOrder.push(item);
+          includedIds[item.id] = true;
+        }
+      }
+    }
+  }
+
   saveItems(newOrder);
 }
 
@@ -268,6 +299,17 @@ function reorderStores() {
   });
   saveStores(newStores);
   renderList(loadItems());
+}
+
+function toggleHeldFilter() {
+  var hideHeld = !loadFilterState();
+  saveFilterState(hideHeld);
+  renderList(loadItems());
+  return hideHeld;
+}
+
+function updateToggleButtonLabel(hideHeld) {
+  $("#toggleHeldButton").text(hideHeld ? "保留を表示" : "保留を隠す");
 }
 
 function increaseQuantity(id) {
@@ -318,6 +360,7 @@ function clearAllItems() {
 
 $(document).ready(function () {
   renderList(loadItems());
+  updateToggleButtonLabel(loadFilterState());
 
   Sortable.create(document.getElementById("itemGroups"), {
     handle: ".storeDragHandle",
@@ -398,6 +441,11 @@ $(document).ready(function () {
     deleteItem(id);
   });
 
+  $("#toggleHeldButton").on("click", function () {
+    var hideHeld = toggleHeldFilter();
+    updateToggleButtonLabel(hideHeld);
+  });
+
   $("#clearAllButton").on("click", function () {
     if (window.confirm("リストを全件削除します。よろしいですか？")) {
       clearAllItems();
@@ -417,9 +465,15 @@ if (typeof module !== "undefined" && module.exports) {
     decreaseQuantity: decreaseQuantity,
     deleteItem: deleteItem,
     clearAllItems: clearAllItems,
+    renderList: renderList,
     loadStores: loadStores,
     saveStores: saveStores,
+    loadFilterState: loadFilterState,
+    saveFilterState: saveFilterState,
     addStore: addStore,
-    deleteStore: deleteStore
+    deleteStore: deleteStore,
+    reorderItems: reorderItems,
+    toggleHeldFilter: toggleHeldFilter,
+    updateToggleButtonLabel: updateToggleButtonLabel
   };
 }

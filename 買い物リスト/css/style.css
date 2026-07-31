@@ -286,3 +286,19 @@ h1 {
   cursor: pointer;
   padding: 4px 8px;
 }
+
+#toggleHeldButton {
+  display: block;
+  margin: 0 auto 16px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  color: #4a90d9;
+  background-color: #fff;
+  border: 1px solid #4a90d9;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#toggleHeldButton:active {
+  background-color: #eaf2fb;
+}
