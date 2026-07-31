@@ -256,18 +256,36 @@ function reorderItems() {
     itemsById[items[i].id] = items[i];
   }
 
+  var includedIds = {};
   var newOrder = [];
+  var storeOrder = [];
   $(".storeItemList").each(function () {
     var store = $(this).attr("data-store");
+    storeOrder.push(store);
     $(this).find("li").each(function () {
       var id = Number($(this).attr("data-id"));
       var item = itemsById[id];
       if (item) {
         item.store = store;
         newOrder.push(item);
+        includedIds[id] = true;
       }
     });
   });
+
+  if (loadFilterState()) {
+    for (var s = 0; s < storeOrder.length; s++) {
+      var store = storeOrder[s];
+      for (i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (item.held && !includedIds[item.id] && (item.store || UNASSIGNED_STORE) === store) {
+          newOrder.push(item);
+          includedIds[item.id] = true;
+        }
+      }
+    }
+  }
+
   saveItems(newOrder);
 }
 
@@ -436,6 +454,7 @@ if (typeof module !== "undefined" && module.exports) {
     loadFilterState: loadFilterState,
     saveFilterState: saveFilterState,
     addStore: addStore,
-    deleteStore: deleteStore
+    deleteStore: deleteStore,
+    reorderItems: reorderItems
   };
 }

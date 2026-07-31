@@ -99,3 +99,21 @@ test("renderListの件数表示はフィルタ状態に関わらず全件ベー�
   app.renderList(app.loadItems());
   expect($("#remainingCount").text()).toContain("保留: 1件");
 });
+
+test("reorderItemsはフィルタで非表示中の保留アイテムを消さない", function () {
+  document.body.innerHTML = '<div id="itemGroups"></div><p id="remainingCount"></p>';
+  app.addItem("卵", "1");
+  var id = app.loadItems()[0].id;
+  app.toggleHeld(id);
+
+  app.saveFilterState(true);
+  app.renderList(app.loadItems());
+  expect($("li[data-id='" + id + "']").length).toBe(0);
+
+  app.reorderItems();
+
+  var items = app.loadItems();
+  expect(items.length).toBe(1);
+  expect(items[0].id).toBe(id);
+  expect(items[0].held).toBe(true);
+});
