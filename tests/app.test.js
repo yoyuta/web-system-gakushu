@@ -62,3 +62,14 @@ test("clearAllItemsで商品と店舗が両方消える", function () {
   expect(app.loadItems()).toEqual([]);
   expect(app.loadStores()).toEqual([]);
 });
+
+test("loadFilterStateは未設定時にfalseを返す", function () {
+  expect(app.loadFilterState()).toBe(false);
+});
+
+test("saveFilterStateで保存した値をloadFilterStateで取得できる", function () {
+  app.saveFilterState(true);
+  expect(app.loadFilterState()).toBe(true);
+  app.saveFilterState(false);
+  expect(app.loadFilterState()).toBe(false);
+});

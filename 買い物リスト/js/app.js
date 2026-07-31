@@ -1,5 +1,6 @@
 var STORAGE_KEY = "shoppingList";
 var STORE_KEY = "shoppingStores";
+var FILTER_KEY = "shoppingFilterHideHeld";
 var UNASSIGNED_STORE = "";
 
 function loadItems() {
@@ -24,6 +25,14 @@ function loadStores() {
 
 function saveStores(stores) {
   localStorage.setItem(STORE_KEY, JSON.stringify(stores));
+}
+
+function loadFilterState() {
+  return localStorage.getItem(FILTER_KEY) === "1";
+}
+
+function saveFilterState(hideHeld) {
+  localStorage.setItem(FILTER_KEY, hideHeld ? "1" : "0");
 }
 
 function addStore(name) {
@@ -419,6 +428,8 @@ if (typeof module !== "undefined" && module.exports) {
     clearAllItems: clearAllItems,
     loadStores: loadStores,
     saveStores: saveStores,
+    loadFilterState: loadFilterState,
+    saveFilterState: saveFilterState,
     addStore: addStore,
     deleteStore: deleteStore
   };
