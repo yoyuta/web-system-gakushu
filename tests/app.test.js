@@ -117,3 +117,25 @@ test("reorderItemsはフィルタで非表示中の保留アイテムを消さ�
   expect(items[0].id).toBe(id);
   expect(items[0].held).toBe(true);
 });
+
+test("toggleHeldFilterは状態を反転して保存し再描画する", function () {
+  document.body.innerHTML = '<div id="itemGroups"></div><p id="remainingCount"></p>';
+  expect(app.loadFilterState()).toBe(false);
+
+  var result1 = app.toggleHeldFilter();
+  expect(result1).toBe(true);
+  expect(app.loadFilterState()).toBe(true);
+
+  var result2 = app.toggleHeldFilter();
+  expect(result2).toBe(false);
+  expect(app.loadFilterState()).toBe(false);
+});
+
+test("updateToggleButtonLabelはフィルタ状態に応じてボタン文言を切り替える", function () {
+  document.body.innerHTML = '<button type="button" id="toggleHeldButton"></button>';
+  app.updateToggleButtonLabel(false);
+  expect($("#toggleHeldButton").text()).toBe("保留を隠す");
+
+  app.updateToggleButtonLabel(true);
+  expect($("#toggleHeldButton").text()).toBe("保留を表示");
+});

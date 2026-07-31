@@ -301,6 +301,17 @@ function reorderStores() {
   renderList(loadItems());
 }
 
+function toggleHeldFilter() {
+  var hideHeld = !loadFilterState();
+  saveFilterState(hideHeld);
+  renderList(loadItems());
+  return hideHeld;
+}
+
+function updateToggleButtonLabel(hideHeld) {
+  $("#toggleHeldButton").text(hideHeld ? "保留を表示" : "保留を隠す");
+}
+
 function increaseQuantity(id) {
   var items = loadItems();
   for (var i = 0; i < items.length; i++) {
@@ -455,6 +466,8 @@ if (typeof module !== "undefined" && module.exports) {
     saveFilterState: saveFilterState,
     addStore: addStore,
     deleteStore: deleteStore,
-    reorderItems: reorderItems
+    reorderItems: reorderItems,
+    toggleHeldFilter: toggleHeldFilter,
+    updateToggleButtonLabel: updateToggleButtonLabel
   };
 }
